@@ -8,7 +8,10 @@ from openai import OpenAI
 import os
 import json
 from dotenv import load_dotenv
+from logger import init_logger, log
+
 load_dotenv()
+init_logger()
 
 app = FastAPI()
 
@@ -20,6 +23,7 @@ class CorrectionRequest(BaseModel):
 
 @app.post("/correct")
 async def correct(req: CorrectionRequest):
+    log.info(f"Received correction request for error: {req.error}")
 
     prompt = f"""
 You are an API request correction engine.
@@ -47,6 +51,13 @@ Return ONLY valid JSON in this format:
     content = response.choices[0].message.content
 
     try:
-        return json.loads(content)
-    except:
+        result = json.loads(content)
+        log.info("Successfully generated correction")
+        return result
+    except Exception as e:
+        log.error(f"Failed to generate correction: {e}")
         return {"params": {}}
+
+@app.on_event("startup")
+async def startup_event():
+    log.info("SHIFT Agent running on :8000")
