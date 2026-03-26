@@ -20,10 +20,12 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class CorrectionRequest(BaseModel):
     request: dict
     error: str
+    requestId: str
 
 @app.post("/correct")
 async def correct(req: CorrectionRequest):
-    log.info(f"Received correction request for error: {req.error}")
+    log.info(f"[{req.requestId}] Agent received correction request")
+    log.info(f"[{req.requestId}] Error: {req.error}")
 
     prompt = f"""
 You are an API request correction engine.
@@ -52,10 +54,10 @@ Return ONLY valid JSON in this format:
 
     try:
         result = json.loads(content)
-        log.info("Successfully generated correction")
+        log.info(f"[{req.requestId}] Corrected params: {result.get('params', {})}")
         return result
     except Exception as e:
-        log.error(f"Failed to generate correction: {e}")
+        log.error(f"[{req.requestId}] Failed to generate correction: {e}")
         return {"params": {}}
 
 @app.on_event("startup")
