@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from openai import OpenAI
 import os
 import json
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 
